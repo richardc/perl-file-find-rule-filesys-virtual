@@ -1,6 +1,7 @@
 package File::Find::Rule::Filesys::Virtual;
 use strict;
 use warnings;
+use File::Find::Rule 0.28;
 use base qw( File::Find::Rule );
 our $VERSION = 1.21;
 
@@ -88,6 +89,7 @@ sub __inner_find {
     for my $name ($vfs->list) {
         local $_ = $name;
         local $File::Find::name = "$File::Find::dir/$name";
+        local $File::Find::prune;
         #print "_:    $_\n";
         #print "dir:  $File::Find::dir\n";
         #print "name: $File::Find::name\n";
