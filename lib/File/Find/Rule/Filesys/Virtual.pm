@@ -34,7 +34,7 @@ for my $test (keys %X_tests) {
            code => "\$File::Find::vfs->test(q{' . $test . '}, \$_)",
            rule => "'.$X_tests{"-$test"}.'",
         };
-        $self;
+        return $self;
     } ';
     no strict 'refs';
     *{ $X_tests{"-$test"} } = $sub;
@@ -58,7 +58,7 @@ for my $test (keys %X_tests) {
                 code => 'do { my $val = ($File::Find::vfs->stat($_))['.$index.'] || 0;'.
                   join ('||', map { "(\$val $_)" } @tests ).' }',
             };
-            $self;
+            return $self;
         };
         no strict 'refs';
         *$test = $sub;
@@ -72,7 +72,7 @@ sub _call_find {
     my $path = shift;
     my $vfs = local $File::Find::vfs = $self->{_virtual};
     my $cwd = $vfs->cwd;
-    __inner_find( $args{wanted}, $path );
+    __inner_find( $args{wanted}, $path, "" );
     $vfs->chdir( $cwd );
 }
 
@@ -80,25 +80,24 @@ sub _call_find {
 sub __inner_find {
     my $wanted = shift;
     my $path   = shift;
+    my $parent = shift;
     my $vfs = $File::Find::vfs;
 
-    print "Fake find $path\n";
     $vfs->chdir( $path ) or do { print "chdir $path failed\n"; return };
+    local $File::Find::dir  = $parent ? "$parent/$path" : $path;
     for my $name ($vfs->list) {
         local $_ = $name;
-        local $File::Find::dir  = "$dir/$path";
-        local $File::Find::name = "$path/$name";
-        print "_:    $_\n";
-        print "dir:  $File::Find::dir\n";
-        print "name: $File::Find::name\n";
+        local $File::Find::name = "$File::Find::dir/$name";
+        #print "_:    $_\n";
+        #print "dir:  $File::Find::dir\n";
+        #print "name: $File::Find::name\n";
 
         $wanted->();
 
         if ($vfs->test("d", $name ) && !$File::Find::prune && $name !~ /^\..?$/) {
             my $cwd = $vfs->cwd;
-            __inner_find( $wanted, $name );
+            __inner_find( $wanted, $name, $File::Find::dir );
             $vfs->chdir( $cwd );
-            print "cwd now ".$vfs->cwd."\n";
         }
     }
 }
