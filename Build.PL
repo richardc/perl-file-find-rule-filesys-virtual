@@ -5,6 +5,11 @@ Module::Build->new(
     license     => 'perl',
     requires    => {
         'perl' => 5.006,
+        'Filesys::Virtual' => 0, # only really needed for the tests,
+                                 # but if you're not going to install
+                                 # it what the heck do you want with
+                                 # this module?
+        'File::Find::Rule' => 0.28,
     },
     build_requires => {
         'Test::More' => 0,

@@ -12,8 +12,17 @@ File::Find::Rule::Filesys::Virtual - File::Find::Rule adapted to Filesys::Virtua
 =head1 SYNOPSIS
 
  use File::Find::Rule::Filesys::Virtual;
+ use Filesys::Virtual::Ninja;
+ my $vfs = Filesys::Virtual::Ninja->new;
+ my @virtual_ninja_foos = File::Find::Rule::Filesys::Virtual
+   ->virtual( $vfs )
+   ->name( "foo.*' )
+   ->in( '/' );
 
 =head1 DESCRIPTION
+
+This module allows you to use File::Find::Rule file finding semantics
+to Filesys::Virtual derived filesystems.
 
 =cut
 
@@ -66,6 +75,9 @@ for my $test (keys %X_tests) {
     }
 }
 
+sub glob {
+    die "I'm too lazy";
+}
 
 sub _call_find {
     my $self = shift;
@@ -105,11 +117,24 @@ sub __inner_find {
 }
 
 
-
 1;
 
 __END__
 
+=head1 CAVEATS
+
+=over
+
+=item
+
+The ->grep builtin isn't currently supported.
+
+=item
+
+The File::Find emulation will probably not be full enough for other
+File::Find::Rule extensions to do their thang.
+
+=back
 
 =head1 AUTHOR
 
@@ -122,14 +147,12 @@ Copyright 2004 Richard Clamp.  All Rights Reserved.
 This program is free software; you can redistribute it
 and/or modify it under the same terms as Perl itself.
 
-
 =head1 BUGS
 
 None known.
 
 Bugs should be reported to me via the CPAN RT system.
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File::Find::Rule::Filesys::Virtual>.
-
 
 =head1 SEE ALSO
 
