@@ -1,0 +1,8 @@
+META.yml
+Makefile.PL
+Build.PL
+lib/File/Find/Rule/Filesys/Virtual.pm
+MANIFEST
+MANIFEST.SKIP
+t/findvirtual.t
+t/subdir/bigfile
