@@ -31,7 +31,7 @@ for my $test (keys %X_tests) {
     my $sub = eval 'sub () {
         my $self = _force_object shift;
         push @{ $self->{rules} }, {
-           code => "\$self->{_virtual}->test(q{' . $test . '}, \$_)",
+           code => "\$File::Find::vfs->test(q{' . $test . '}, \$_)",
            rule => "'.$X_tests{"-$test"}.'",
         };
         $self;
@@ -55,13 +55,51 @@ for my $test (keys %X_tests) {
             push @{ $self->{rules} }, {
                 rule => $test,
                 args => \@_,
-                code => 'do { my $val = ($self->{_virtual}->stat($_))['.$index.'] || 0;'.
+                code => 'do { my $val = ($File::Find::vfs->stat($_))['.$index.'] || 0;'.
                   join ('||', map { "(\$val $_)" } @tests ).' }',
             };
             $self;
         };
         no strict 'refs';
         *$test = $sub;
+    }
+}
+
+
+sub _call_find {
+    my $self = shift;
+    my %args = %{ shift() };
+    my $path = shift;
+    my $vfs = local $File::Find::vfs = $self->{_virtual};
+    my $cwd = $vfs->cwd;
+    __inner_find( $args{wanted}, $path );
+    $vfs->chdir( $cwd );
+}
+
+# fake the behaviour of File::Find.  It burns!
+sub __inner_find {
+    my $wanted = shift;
+    my $path   = shift;
+    my $vfs = $File::Find::vfs;
+
+    print "Fake find $path\n";
+    $vfs->chdir( $path ) or do { print "chdir $path failed\n"; return };
+    for my $name ($vfs->list) {
+        local $_ = $name;
+        local $File::Find::dir  = "$dir/$path";
+        local $File::Find::name = "$path/$name";
+        print "_:    $_\n";
+        print "dir:  $File::Find::dir\n";
+        print "name: $File::Find::name\n";
+
+        $wanted->();
+
+        if ($vfs->test("d", $name ) && !$File::Find::prune && $name !~ /^\..?$/) {
+            my $cwd = $vfs->cwd;
+            __inner_find( $wanted, $name );
+            $vfs->chdir( $cwd );
+            print "cwd now ".$vfs->cwd."\n";
+        }
     }
 }
 
