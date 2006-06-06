@@ -75,10 +75,6 @@ for my $test (keys %X_tests) {
     }
 }
 
-sub glob {
-    die "I'm too lazy";
-}
-
 sub grep {
     my $self = _force_object shift;
     my @pattern = map {
@@ -125,7 +121,22 @@ sub __inner_find {
     my $parent = shift;
     my $vfs = $File::Find::vfs;
 
-    $vfs->chdir( $path ) or do { print "chdir $path failed\n"; return };
+    unless ( $vfs->chdir( $path ) ) {
+        # Couldn't chdir into it, so we see if it's a file.
+        # Actually because there are many forms of "file" (plain,
+        # symlink, socket, block, character) we just check if it
+        # exists and that it's not a directory.
+        if ($vfs->test('e', $path) && !$vfs->test('d', $path)) {
+            my ($dir, $name) = $path =~ m{^(.*/)(.*)};
+            local $_ = $name;
+            local $File::Find::dir  = $dir;
+            local $File::Find::name = $path;
+            local $File::Find::prune;
+            $vfs->chdir($dir);
+            $wanted->();
+        }
+        return; # I have no clue - bail
+    }
     local $File::Find::dir  = $parent ? "$parent/$path" : $path;
     for my $name ($vfs->list) {
         local $_ = $name;

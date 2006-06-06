@@ -1,6 +1,6 @@
 #!perl -w
 use strict;
-use Test::More tests => 7;
+use Test::More tests => 8;
 use File::Find::Rule;
 use File::Find::Rule::Filesys::Virtual;
 use Filesys::Virtual::Plain;
@@ -39,10 +39,15 @@ is_deeply( [ new_virt->or( new_virt->name('.svn')->prune->discard,
 is_deeply( [ new_virt->grep(qr/irony/)->in('t') ],
            [ new_real->grep(qr/irony/)->in('t') ],
            "find irony in our big file");
-{ 
-local $TODO = "the in may not always be a directory";
+
+# the in may not always be a directory
 is_deeply( [ new_virt->size('>600')->name('*.t')->in( 't/findvirtual.t' ) ],
            [ new_real->size('>600')->name('*.t')->in( 't/findvirtual.t' ) ],
            "stat of t/findvirtual.t" );
-}
 
+# and it may be a file and a directory
+is_deeply( [ new_virt->size('>600')->name('*.t')->in( 't/findvirtual.t',
+                                                      't/subdir' ) ],
+           [ new_real->size('>600')->name('*.t')->in( 't/findvirtual.t',
+                                                      't/subdir' ) ],
+           "stat of t/findvirtual.t t/subdir" );
