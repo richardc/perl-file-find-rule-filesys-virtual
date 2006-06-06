@@ -1,4 +1,4 @@
-HEAD
+1.22	Tuesday 6th June, 2006
         Fixed a dependency error caused by the Filesys::Virtual
 	distribution being split up.
 	Norman Nunley implemented ->grep

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use File::Find::Rule 0.28;
 use base qw( File::Find::Rule );
-our $VERSION = 1.21;
+our $VERSION = 1.22;
 
 =head1 NAME
 
@@ -178,7 +178,7 @@ Richard Clamp <richardc@unixbeard.net>
 
 =head1 COPYRIGHT
 
-Copyright 2004 Richard Clamp.  All Rights Reserved.
+Copyright 2004, 2006 Richard Clamp.  All Rights Reserved.
 
 This program is free software; you can redistribute it
 and/or modify it under the same terms as Perl itself.
