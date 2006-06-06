@@ -12,6 +12,7 @@ Module::Build->new(
         'File::Find::Rule' => 0.28,
     },
     build_requires => {
+        'Filesys::Virtual::Plain' => 0,
         'Test::More' => 0,
     },
     create_makefile_pl => 'traditional',

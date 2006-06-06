@@ -79,6 +79,35 @@ sub glob {
     die "I'm too lazy";
 }
 
+sub grep {
+    my $self = _force_object shift;
+    my @pattern = map {
+        ref $_
+          ? ref $_ eq 'ARRAY'
+            ? map { [ ( ref $_ ? $_ : qr/$_/ ) => 0 ] } @$_
+            : [ $_ => 1 ]
+          : [ qr/$_/ => 1 ]
+      } @_;
+
+    $self->exec( sub {
+        my $vfs = $File::Find::vfs;
+        my $fh = $vfs->open_read($_) or return;
+        local ($_, $.);
+        while (<$fh>) {
+            for my $p (@pattern) {
+                my ($rule, $ret) = @$p;
+                if (ref $rule eq 'Regexp' ? /$rule/ : $rule->(@_)) {
+                  $vfs->close_read($fh);
+                  return $ret;
+                }
+            }
+        }
+        $vfs->close_read($fh);
+        return;
+    } );
+}
+
+
 sub _call_find {
     my $self = shift;
     my %args = %{ shift() };
@@ -127,10 +156,6 @@ __END__
 
 =item
 
-The ->grep builtin isn't currently supported.
-
-=item
-
 The File::Find emulation will probably not be full enough for other
 File::Find::Rule extensions to do their thang.
 
@@ -146,13 +171,6 @@ Copyright 2004 Richard Clamp.  All Rights Reserved.
 
 This program is free software; you can redistribute it
 and/or modify it under the same terms as Perl itself.
-
-=head1 BUGS
-
-None known.
-
-Bugs should be reported to me via the CPAN RT system.
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File::Find::Rule::Filesys::Virtual>.
 
 =head1 SEE ALSO
 
